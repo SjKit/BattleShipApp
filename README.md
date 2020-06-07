@@ -15,6 +15,7 @@ In the game there are five ship types
 - Cruiser (length 3 squares, showing "C")
 - Destroyer (length 2 squares, showing "D")
 - Submarine (length 1 squares, showing "S")
+
 These ships are generated randomly on the game area, both player has them on his own game area.
 
 GAME RULES
