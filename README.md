@@ -1,7 +1,7 @@
 # BattleShipApp
 A one version of the Battle Ship game
 
-Note! The application is not completed, there are some issues to be handled.
+Note! The application is not completed, there are some issues to be handled. You can run it in Visual Studio by opening BattleShipApp.sln.
 
 GETTING STARTED
 
