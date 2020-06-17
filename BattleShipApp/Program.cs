@@ -90,6 +90,11 @@ namespace BattleShipApp
         List<string> columnTitleList = new List<string>{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
         List<int> rowTitleList = new List<int> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
+        // Public variables for handling the console output and max scores
+        public int firedAgain = 0;
+        public string infoText = "";
+        public bool isMaxScores = false;
+
         int score;
         string name;
         Player enemy;
@@ -244,7 +249,6 @@ namespace BattleShipApp
                     Console.WriteLine(columnTitleList[iter]);
                     Console.SetCursorPosition(baseX - 1, iter + baseY);
                     Console.WriteLine(rowTitleList[iter]);
-                    //Console.ReadLine();                    
                 }
 
                 x = playermap.ElementAt<Tile>(iter).x;
@@ -267,7 +271,6 @@ namespace BattleShipApp
                     Console.WriteLine(columnTitleList[iter]);
                     Console.SetCursorPosition(baseX - 1, iter + baseY);
                     Console.WriteLine(rowTitleList[iter]);
-                    //Console.ReadLine();
                 }
                 
                 x = enemymap.ElementAt<Tile>(iter).x;
@@ -294,7 +297,7 @@ namespace BattleShipApp
             do
             {
                 // User's input to x
-                Console.WriteLine("X eli sarake (A=0, B=1, C=2 jne...)");
+                Console.WriteLine("X as a column (A=0, B=1, C=2 etc...)");
                 string guessInput = Console.ReadLine();
 
                 // Convert string to number
@@ -310,7 +313,7 @@ namespace BattleShipApp
             do
             {
                 // User's input to Y
-                Console.WriteLine("Y eli rivinumero (0, 1, 2 jne...)");
+                Console.WriteLine("Y as a row (0, 1, 2 etc...)");
                 string guessInput = Console.ReadLine();
 
                 // Convert string to number
@@ -324,7 +327,7 @@ namespace BattleShipApp
             } while (!validResponse);
 
             int position = (responseX * 10) + responseY;
-            // SKi enemy's baseX and baseY
+            // Enemy's baseX and baseY
             int baseX = 15; 
             int baseY = 3;
             int cursorX = Console.CursorLeft;
@@ -335,10 +338,12 @@ namespace BattleShipApp
             if (enemy.playermap.ElementAt<Tile>(position).content == ".")
             {
                 ChangeMapTile(enemymap, position, ConsoleColor.Red, "!");
-                // SKI näytetään kartalla
+                // Show the miss also on the map
                 Console.SetCursorPosition((baseX + responseX), (baseY + responseY));
                 Console.BackgroundColor = ConsoleColor.Red;
                 Console.Write(enemymap.ElementAt<Tile>(position).content);
+                // Inform player
+                infoText = "Sorry, you missed!\n";
             }
             else if (
                 enemymap.ElementAt<Tile>(position).content != "A" &&
@@ -358,31 +363,53 @@ namespace BattleShipApp
                 Console.BackgroundColor = ConsoleColor.Green;
                 Console.Write(enemymap.ElementAt<Tile>(position).content);
 
-                // Do not draw the map again, instead show score and the info text
-                //DrawMap("You hit enemy! Fire again...");
+                // Show score and the info text
                 int startX = 0, startY = 0;
                 cursorY++;
                 Console.SetCursorPosition(startX, startY);
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Write("Player is " + name + " with score " + score + ".");
-                Console.SetCursorPosition((cursorX), (cursorY));
-                Console.WriteLine("You hit enemy!, Fire again ...");
 
-                // TODO: this causes loop when missed the next time, Change player text more than once???
-                Fire();
+                // Check the scores
+                if (score < 15)
+                {
+                    Console.SetCursorPosition((cursorX), (cursorY));
+                    Console.WriteLine("You hit enemy! Fire again ...");
+
+                    Fire();
+                    // Fired more than once 
+                    firedAgain++;
+                }
+                else
+                {
+                    isMaxScores = true;
+                    Console.SetCursorPosition((cursorX), (cursorY));
+                    Console.WriteLine("This was the last one, all ships are hit. Congratulations!");
+                    Console.WriteLine("<Return> to finished the came...");
+                    Console.ReadLine();
+                }
+            }
+            // Already used the same coordinates when hit succesfully, inform the player
+            else
+            {
+                infoText = "You have already hit with the same coordinates!\n";
             }
 
-            // SKI
-            Console.SetCursorPosition((cursorX), (cursorY + 1));
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.WriteLine("<Return> to Change Player...");
-            Console.ReadLine();
+            // Show only once when missed for the first round or fired again and then missed
+            if (firedAgain == 0 && !isMaxScores)
+            {
+                Console.SetCursorPosition((cursorX), (cursorY + 1));
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.WriteLine(infoText + "<Return> to Change Player...");
+                Console.ReadLine();
+            }
         }
 
         public bool DidWin()
         {
             bool winner = (score >= 15) ? true : false;
 
+            // Show the winner
             if (winner)
             {
                 Console.WriteLine("Winner is " + name);
@@ -422,16 +449,25 @@ namespace BattleShipApp
                 // Player1
                 player1.DrawMap();
                 player1.Fire();
+                player1.firedAgain = 0;
+                player1.infoText = "";
                 player1.DrawMap();
                 didWin = player1.DidWin();
 
-                // Player2
-                player2.DrawMap();
-                player2.Fire();
-                player2.DrawMap();
-                didWin = player2.DidWin();
+                if (!didWin)
+                {
+                    // Player2
+                    player2.DrawMap();
+                    player2.Fire();
+                    player2.firedAgain = 0;
+                    player1.infoText = "";
+                    player2.DrawMap();
+                    didWin = player2.DidWin();
+                }               
 
             } while (!didWin);
+
+            Console.WriteLine("Game over, <Return> to exit.");
         }
     }
 
